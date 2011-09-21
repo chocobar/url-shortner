@@ -113,7 +113,7 @@ class urlClass:
             self.title = append_title_for_logging(longurl)
         else:                                      
             self.title = mytitle
-        self.urlStamp = time.strftime('%X %x')
+        self.urlStamp = time.strftime('%X-%x')
 
     def getLongUrl(self):
         return self.longurl
