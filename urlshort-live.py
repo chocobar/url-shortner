@@ -113,7 +113,7 @@ class urlClass:
             self.title = append_title_for_logging(longurl)
         else:                                      
             self.title = mytitle
-        self.urlStamp = time.asctime(time.gmtime())
+        self.urlStamp = time.strftime('%X %x')
 
     def getLongUrl(self):
         return self.longurl
@@ -267,7 +267,7 @@ class ListUrl:
         </html>
 """
         for loggedurl in logger:
-            urllist_string = "<tr><td><pre>%s</pre></td> <td><pre> <a href=%s>%s</a></pre></td> </tr>" %(loggedurl[0], loggedurl[3], loggedurl[1])
+            urllist_string = "<tr><td>%s</td> <td> <a href=%s>%s</a></td> </tr>" %(loggedurl[0], loggedurl[3], loggedurl[1])
             #TODO set up the right short url
             urllist = urllist + urllist_string
         placeholder = placeholder_top + urllist + placeholder_bottom
