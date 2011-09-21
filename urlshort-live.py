@@ -182,7 +182,7 @@ class Admin:
             <h3>Welcome to the jpb.li url shortening service.</h3>
 	    <h4>You can either use the form below or the following query string:</h4>
 	    <pre>http://jpb.li/g/api?url=your_long_url&[title=your_customised_short_title]</pre>
-	    <h4>Recently shortened url's can be found at <a href="http://jpb.li/g/log">http://jpb.li/g</a></h4>
+	    <h4>Recently shortened url's can be found at <a href="http://jpb.li/g/log">http://jpb.li/g/log</a></h4>
           </head>
           <body onload="document.getElementById('url').focus()">
             <header><h4>Web Form:</h4></header>
@@ -258,14 +258,16 @@ class ListUrl:
           </head>
           <body>
             <header><h2>URL's created on http://jpb.li</h2></header>
+	<table>
 """
 
         placeholder_bottom = """
+	</table>
           </body>
         </html>
 """
         for loggedurl in logger:
-            urllist_string = "<p>%s : <a href=%s>%s</a> </p>" %(loggedurl[0], loggedurl[3], loggedurl[1])
+            urllist_string = "<tr><td><pre>%s</pre></td> <td><pre> <a href=%s>%s</a></pre></td> </tr>" %(loggedurl[0], loggedurl[3], loggedurl[1])
             #TODO set up the right short url
             urllist = urllist + urllist_string
         placeholder = placeholder_top + urllist + placeholder_bottom
