@@ -1,0 +1,14 @@
+Welcome to the jpb.li urlshortner.
+
+To run:
+cd into the urlshortner directory. (/home/net/priya)
+
+./start-shortner
+
+Other information:
+
+The main python script for the urlshortner is urlshort.py
+
+This script stores the url's shortened in a persistent shelf object shelfshorturl-v8.bg
+
+The logging is stored in url-logger.pkl 

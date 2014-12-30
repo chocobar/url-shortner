@@ -1,0 +1,6 @@
+priya@pavilion:~$ ps fax |grep short
+ 8122 pts/4    S+     0:00              \_ grep short
+ 8019 pts/2    Sl     0:00 /usr/bin/python ./urlshort.py 8124
+
+priya@pavilion:~$ kill 8019
+
