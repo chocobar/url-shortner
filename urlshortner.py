@@ -24,7 +24,7 @@ urls = (
     "/done/(.*)",       "AdminDone",
     "/favicon.ico",     "Favicon",
     "/log",             "ListUrl",
-    "/api",             "GET_API",
+    "/api",             "API",
     "/" + REDIRECT_PREFIX + "/(.*)",            "RedirectToOthers",
 )
 
@@ -147,7 +147,7 @@ class Admin:
             web.form.Textbox("shortcut",description="(optional) Your own short word"),
             web.form.Textbox("title",description="(optional) URL Title"),
             )
-        admin_template = web.template.Template("""$def with(form)
+        admin_template = web.template.Template("""$def with(form, SERVICE_URL)
         <!DOCTYPE HTML>
         <html lang="en">
           <head>
@@ -155,11 +155,10 @@ class Admin:
             <title>jpb.li</title>
             <h3>Welcome to the url shortening service.</h3>
 	    <h4>You can either use the form below or the following query string:</h4>
-	    <pre>http://localhost:8080/g/api?url=your_long_url&[title=your_customised_short_title]</pre>
-	    <h4>Recently shortened url's can be found at <a href="http://jpb.li/g/log">http://localhost:8080/g/log</a></h4>
+	    <pre>http://localhost:8080/api?url=your_long_url&[title=your_customised_short_title]</pre>
+	    <h4>Recently shortened url's can be found at <a href="/log">http://$SERVICE_URL/log</a></h4>
           </head>
           <body onload="document.getElementById('url').focus()">
-            <header><h4>Web Form:</h4></header>
             <form method="POST" action=/>
               $:form.render()
               <input type="submit" value="Shorten this long URL">
@@ -167,7 +166,7 @@ class Admin:
           </body>
         </html>
         """)
-        return admin_template(admin_form())
+        return admin_template(admin_form(), SERVICE_URL)
 
     def POST(self):
         data = web.input()
@@ -193,7 +192,7 @@ class Admin:
         storage.close()
         return response
 
-class GET_API:
+class API:
     def GET(self):
         variables = web.input()
         web.header("Content-Type","text/html; charset=utf-8")
@@ -210,13 +209,13 @@ class GET_API:
         storage = shelve.open(SHELVE_FILENAME)
         myUrl = urlClass(long_url, urlTitle)
         if storage.has_key(short_url):
-            response = SERVICE_URL + ADMIN + short_url
+            response = web.seeother('/done/'+short_url)
         else:
             storage[short_url] = myUrl
-            response = SERVICE_URL + ADMIN + short_url
+            response = short_url
         do_logging(myUrl, response)
         storage.close()
-        return response
+        return web.seeother('/done/'+short_url)
 
 class ListUrl:
     def GET(self):
@@ -250,7 +249,7 @@ class ListUrl:
 class AdminDone:
     def GET(self, short_name):
         web.header("Content-Type","text/html; charset=utf-8")
-        admin_done_template = web.template.Template("""$def with(new_url)
+        admin_done_template = web.template.Template("""$def with(new_url, SERVICE_URL, REDIRECT_PREFIX)
        <!DOCTYPE HTML>
         <html lang="en">
           <head>
@@ -259,11 +258,11 @@ class AdminDone:
           </head>
           <body>
             <header><h1>Done!</h1></header>
-            <p>You created: <a href=$new_url>$new_url</a> </p>
+            <p>You created: <a href=/$REDIRECT_PREFIX/$new_url>http://$SERVICE_URL/$REDIRECT_PREFIX/$new_url</a> </p>
           </body>
         </html>
         """)
-        return admin_done_template("/" + REDIRECT_PREFIX + "/" + short_name)
+        return admin_done_template(short_name, SERVICE_URL, REDIRECT_PREFIX)
 
 def terminate(sig, frame):
     print 'Received Signal:', sig
