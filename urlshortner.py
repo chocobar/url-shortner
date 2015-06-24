@@ -70,8 +70,8 @@ def append_title_for_logging(url):
     except (IOError, AttributeError, TypeError, NameError):
         return u'Unable to retrieve title'
     try:
-	title_s = re.search(r"(?i)<title>\s*(.*?)\s*</title>", htmlsource)
-	title = title_s and title_s.groups()[0] or "NO TITLE"
+        title_s = re.search(r"(?i)<title>\s*(.*?)\s*</title>", htmlsource)
+        title = title_s and title_s.groups()[0] or "NO TITLE"
         return title
     except (IOError, AttributeError, TypeError, NameError):
         return u'Unable to retrieve title'
@@ -80,9 +80,9 @@ def append_title_for_logging(url):
 
 def prepend_http_if_required(link):
     if (re.match("(^)https://", link, re.IGNORECASE)):
-	return link
+        return link
     elif (re.match("(^)data:", link, re.IGNORECASE)):
-	return link
+        return link
     elif not (re.match("(^)http://", link, re.IGNORECASE)):
         link = "http://" + link
     return link
@@ -103,11 +103,11 @@ def do_logging(loggingUrl, shortcut):
 def check_for_duplicates(shorthash):
     global logger
     for loggedurl in logger:
-	print "debug: logger"
-	print loggedurl[3]
-	print shorthash
-	if loggedurl[3] == shorthash:
-		logger.remove(loggedurl)
+        print "debug: logger"
+        print loggedurl[3]
+        print shorthash
+        if loggedurl[3] == shorthash:
+            logger.remove(loggedurl)
 
 # TODO implement class logger for betterness.
 
@@ -129,12 +129,12 @@ class urlClass:
 
 class Home:
     def GET(self):
-	web.header("Content-Type","text/html; charset=utf-8")
+        web.header("Content-Type","text/html; charset=utf-8")
         return HOME_MESSAGE
 
 class Trac:
     def GET(self, number):
-	return web.seeother("http://aladdin.geniedb.com:8000/xos/ticket/%s" %number)
+        return web.seeother("http://aladdin.geniedb.com:8000/xos/ticket/%s" %number)
 
 class GenieCal:
     def GET(self):
@@ -145,13 +145,13 @@ class GenieGit:
         variables = web.input()
         response = "http://aladdin.geniedb.com/git/?"
         if ('p' in variables):
-                response = "%sp=%s;" % (response, variables.p)
+            response = "%sp=%s;" % (response, variables.p)
         if ('a' in variables):
-                response = "%sa=%s;" % (response, variables.a)
+            response = "%sa=%s;" % (response, variables.a)
         if ('f' in variables):
-                response = "%sf=%s;" % (response, variables.f)
+            response = "%sf=%s;" % (response, variables.f)
         if ('hb' in variables):
-                response = "%shb=%s;" % (response, variables.hb)
+            response = "%shb=%s;" % (response, variables.hb)
         return web.seeother(response)
 
 class Favicon:
@@ -174,12 +174,12 @@ class RedirectToOthers:
 
 class Admin:
     def GET(self):
-	web.header("Content-Type","text/html; charset=utf-8")
+        web.header("Content-Type","text/html; charset=utf-8")
         admin_form = web.form.Form(
             web.form.Textbox("url",     description="Long URL"),
             web.form.Textbox("shortcut",description="(optional) Your own short word"),
             web.form.Textbox("title",description="(optional) URL Title"),
-        )
+            )
         admin_template = web.template.Template("""$def with(form)
         <!DOCTYPE HTML>
         <html lang="en">
@@ -205,8 +205,8 @@ class Admin:
     def POST(self):
         data = web.input()
         data.url = prepend_http_if_required(data.url)
-	if str(data.shortcut):
-		data.shortcut = str(data.shortcut)
+        if str(data.shortcut):
+            data.shortcut = str(data.shortcut)
         shortcut = str(data.shortcut) or random_shortcut(data.url)
         if str(data.title):
             siteTitle = data.title
@@ -218,7 +218,7 @@ class Admin:
         elif storage.has_key(shortcut):
             myUrl = urlClass(data.url, siteTitle)
             response = web.seeother('/done/'+shortcut)
-	else :
+        else :
             myUrl = urlClass(data.url, siteTitle)
             storage[shortcut] = myUrl
             response = web.seeother('/done/'+shortcut)
@@ -228,14 +228,14 @@ class Admin:
 
 class GET_API:
     def GET(self):
-	variables = web.input()
-	web.header("Content-Type","text/html; charset=utf-8")
-	if 'url' in variables:
-		long_url = variables.url
-	else:
-		return "No URL Specified"
-	if 'title' in variables:
-		urlTitle = variables.title
+        variables = web.input()
+        web.header("Content-Type","text/html; charset=utf-8")
+        if 'url' in variables:
+            long_url = variables.url
+        else:
+            return "No URL Specified"
+        if 'title' in variables:
+            urlTitle = variables.title
         else:
             urlTitle = ""
         long_url = prepend_http_if_required(long_url)
@@ -253,7 +253,7 @@ class GET_API:
 
 class ListUrl:
     def GET(self):
-	web.header("Content-Type","text/html; charset=utf-8")
+        web.header("Content-Type","text/html; charset=utf-8")
         urllist = ""
         placeholder_top = """
        <!DOCTYPE HTML>
@@ -282,7 +282,7 @@ class ListUrl:
 
 class AdminDone:
     def GET(self, short_name):
-	web.header("Content-Type","text/html; charset=utf-8")
+        web.header("Content-Type","text/html; charset=utf-8")
         admin_done_template = web.template.Template("""$def with(new_url)
        <!DOCTYPE HTML>
         <html lang="en">
