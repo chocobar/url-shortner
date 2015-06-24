@@ -18,14 +18,15 @@ LENGTH = 4
 STATIC_DIR = "/static"
 PICKLE_FILE = "url-logger.pkl"
 REDIRECT_PREFIX = "r"
+SHRINK_PATH = "shrink"
 
 urls = (
-    "/",                "Admin",
-    "/done/(.*)",       "AdminDone",
-    "/favicon.ico",     "Favicon",
-    "/log",             "ListUrl",
-    "/api",             "API",
-    "/" + REDIRECT_PREFIX + "/(.*)",            "RedirectToOthers",
+    "/",                                "Admin",
+    "/done/(.*)",                       "AdminDone",
+    "/favicon.ico",                     "Favicon",
+    "/log",                             "ListUrl",
+    "/" + SHRINK_PATH,                  "Shrink",
+    "/" + REDIRECT_PREFIX + "/(.*)",    "RedirectToOthers",
 )
 
 #Messages
@@ -98,9 +99,6 @@ def do_logging(loggingUrl, shortcut):
 def check_for_duplicates(shorthash):
     global logger
     for loggedurl in logger:
-        print "debug: logger"
-        print loggedurl[3]
-        print shorthash
         if loggedurl[3] == shorthash:
             logger.remove(loggedurl)
 
@@ -129,8 +127,6 @@ class RedirectToOthers:
     def GET(self, short_name):
         storage = shelve.open(SHELVE_FILENAME)
         short_name = str(short_name) # shelve does not allow unicode keys
-        print storage
-        print short_name
         if storage.has_key(short_name):
             destination = storage[short_name]
             response = web.redirect(destination.getLongUrl())
@@ -147,7 +143,7 @@ class Admin:
             web.form.Textbox("shortcut",description="(optional) Your own short word"),
             web.form.Textbox("title",description="(optional) URL Title"),
             )
-        admin_template = web.template.Template("""$def with(form, SERVICE_URL)
+        admin_template = web.template.Template("""$def with(form, SERVICE_URL, SHRINK_PATH)
         <!DOCTYPE HTML>
         <html lang="en">
           <head>
@@ -155,7 +151,7 @@ class Admin:
             <title>jpb.li</title>
             <h3>Welcome to the url shortening service.</h3>
 	    <h4>You can either use the form below or the following query string:</h4>
-	    <pre>http://localhost:8080/api?url=your_long_url&[title=your_customised_short_title]</pre>
+	    <pre>http://localhost:8080/$SHRINK_PATH?url=your_long_url&[title=your_customised_short_title]</pre>
 	    <h4>Recently shortened url's can be found at <a href="/log">http://$SERVICE_URL/log</a></h4>
           </head>
           <body onload="document.getElementById('url').focus()">
@@ -166,7 +162,7 @@ class Admin:
           </body>
         </html>
         """)
-        return admin_template(admin_form(), SERVICE_URL)
+        return admin_template(admin_form(), SERVICE_URL, SHRINK_PATH)
 
     def POST(self):
         data = web.input()
@@ -192,7 +188,7 @@ class Admin:
         storage.close()
         return response
 
-class API:
+class Shrink:
     def GET(self):
         variables = web.input()
         web.header("Content-Type","text/html; charset=utf-8")
@@ -220,7 +216,7 @@ class API:
 class ListUrl:
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
-        urllist = ""
+        table = ""
         placeholder_top = """
        <!DOCTYPE HTML>
         <html lang="en">
@@ -229,7 +225,7 @@ class ListUrl:
             <title>URL Logger</title>
           </head>
           <body>
-            <header><h2>URL's created on http://jpb.li</h2></header>
+            <header><h2>URL's shortenned:</h2></header>
 	<table>
 """
 
@@ -239,10 +235,10 @@ class ListUrl:
         </html>
 """
         for loggedurl in logger:
-            urllist_string = "<tr><td>%s</td> <td> <a href=%s>%s</a></td> </tr>" %(loggedurl[0], loggedurl[3].decode().encode('utf-8'), loggedurl[1])
+            table_element = "<tr><td>%s</td> <td> <a href=%s>%s</a></td> </tr>" %(loggedurl[0], loggedurl[3], loggedurl[1].decode("utf-8", "ignore").encode('ascii','replace'))
             #TODO set up the right short url
-            urllist = urllist + urllist_string
-        placeholder = placeholder_top + urllist + placeholder_bottom
+            table = table + table_element
+        placeholder = placeholder_top + table + placeholder_bottom
         list_template = web.template.Template(placeholder)
         return placeholder
 
