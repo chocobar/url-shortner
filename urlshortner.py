@@ -27,9 +27,6 @@ urls = (
     "/favicon.ico",     "Favicon",
     ADMIN + "/log", "ListUrl",
     ADMIN + "/api",           "GET_API",
-    "/geniecal",           "GenieCal",
-    "/git",                "GenieGit",
-    "/g([0-9].*)",           "Trac",
     "/" + REDIRECT_PREFIX + "/(.*)",            "RedirectToOthers",
 )
 
@@ -125,34 +122,6 @@ class urlClass:
 
     def getTime(self):
         return self.urlStamp
-
-
-class Home:
-    def GET(self):
-        web.header("Content-Type","text/html; charset=utf-8")
-        return HOME_MESSAGE
-
-class Trac:
-    def GET(self, number):
-        return web.seeother("http://aladdin.geniedb.com:8000/xos/ticket/%s" %number)
-
-class GenieCal:
-    def GET(self):
-        return web.seeother("https://www.google.com/calendar/hosted/geniedb.com/render")
-
-class GenieGit:
-    def GET(self):
-        variables = web.input()
-        response = "http://aladdin.geniedb.com/git/?"
-        if ('p' in variables):
-            response = "%sp=%s;" % (response, variables.p)
-        if ('a' in variables):
-            response = "%sa=%s;" % (response, variables.a)
-        if ('f' in variables):
-            response = "%sf=%s;" % (response, variables.f)
-        if ('hb' in variables):
-            response = "%shb=%s;" % (response, variables.hb)
-        return web.seeother(response)
 
 class Favicon:
     def GET(self):
