@@ -14,19 +14,17 @@ import os
 
 SHELVE_FILENAME =  'shelfshorturl-v8.bg'
 SERVICE_URL = "localhost"
-ADMIN = '/g'
 LENGTH = 4
 STATIC_DIR = "/static"
 PICKLE_FILE = "url-logger.pkl"
 REDIRECT_PREFIX = "r"
 
 urls = (
-    "/",                "Home",
+    "/",                "Admin",
     "/done/(.*)",       "AdminDone",
-    ADMIN,              "Admin",
     "/favicon.ico",     "Favicon",
-    ADMIN + "/log", "ListUrl",
-    ADMIN + "/api",           "GET_API",
+    "/log",             "ListUrl",
+    "/api",             "GET_API",
     "/" + REDIRECT_PREFIX + "/(.*)",            "RedirectToOthers",
 )
 
@@ -162,7 +160,7 @@ class Admin:
           </head>
           <body onload="document.getElementById('url').focus()">
             <header><h4>Web Form:</h4></header>
-            <form method="POST" action=/g>
+            <form method="POST" action=/>
               $:form.render()
               <input type="submit" value="Shorten this long URL">
             </form>
