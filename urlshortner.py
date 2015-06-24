@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import web
 import shelve
@@ -13,39 +13,44 @@ from signal import signal, SIGQUIT, SIGINT, SIGTERM
 import os
 
 SHELVE_FILENAME =  'shelfshorturl-v8.bg'
-SERVICE_URL = "http://jpb.li"
+SERVICE_URL = "localhost"
 ADMIN = '/g'
 LENGTH = 4
 STATIC_DIR = "/static"
+PICKLE_FILE = "url-logger.pkl"
+REDIRECT_PREFIX = "r"
 
 urls = (
     "/",                "Home",
-    ADMIN +"/done/(.*)", "AdminDone",
+    "/done/(.*)",       "AdminDone",
     ADMIN,              "Admin",
     "/favicon.ico",     "Favicon",
     ADMIN + "/log", "ListUrl",
-    ADMIN +"/api",           "GET_API",
+    ADMIN + "/api",           "GET_API",
     "/geniecal",           "GenieCal",
     "/git",                "GenieGit",
     "/g([0-9].*)",           "Trac",
-    "/g(.*)",            "RedirectToOthers",
+    "/" + REDIRECT_PREFIX + "/(.*)",            "RedirectToOthers",
 )
 
 #Messages
-HOME_MESSAGE = '''Welcome to URL shortenner. 
-		/admin to get controls'''
+HOME_MESSAGE = '''Welcome to URL shortenner. Please go to /admin to get controls'''
 FAIL_MESSAGE = 'Redirection failed, verify your link...'  # Messages
 
 TERMSIGS = (SIGQUIT, SIGINT, SIGTERM,)
 
 #first run requires a logger to be defined.
-#logger = [] 
+#logger = []
 #subsequent runs use logger object already created.
 
-output = open('url-logger.pkl', 'r')
-logger = pickle.load(output)
-output.close()
+def open_pickle():
+    if (os.path.isfile(PICKLE_FILE)):
+        contents = open(PICKLE_FILE, 'r+')
+        return pickle.load(contents)
+    else:
+        return []
 
+logger = open_pickle()
 app = web.application(urls, globals())
 
 
@@ -70,8 +75,8 @@ def append_title_for_logging(url):
         return title
     except (IOError, AttributeError, TypeError, NameError):
         return u'Unable to retrieve title'
-        
-    
+
+
 
 def prepend_http_if_required(link):
     if (re.match("(^)https://", link, re.IGNORECASE)):
@@ -111,7 +116,7 @@ class urlClass:
         self.longurl =  longurl
         if mytitle is "":
             self.title = append_title_for_logging(longurl)
-        else:                                      
+        else:
             self.title = mytitle
         self.urlStamp = time.strftime('%X-%x')
 
@@ -155,15 +160,17 @@ class Favicon:
 
 class RedirectToOthers:
     def GET(self, short_name):
-        storage = shelve.open(SHELVE_FILENAME)                 
+        storage = shelve.open(SHELVE_FILENAME)
         short_name = str(short_name) # shelve does not allow unicode keys
+        print storage
+        print short_name
         if storage.has_key(short_name):
             destination = storage[short_name]
             response = web.redirect(destination.getLongUrl())
         else:
             response = FAIL_MESSAGE
-        storage.close() 
-        return response  
+        storage.close()
+        return response
 
 class Admin:
     def GET(self):
@@ -179,10 +186,10 @@ class Admin:
           <head>
             <meta charset=utf-8>
             <title>jpb.li</title>
-            <h3>Welcome to the jpb.li url shortening service.</h3>
+            <h3>Welcome to the url shortening service.</h3>
 	    <h4>You can either use the form below or the following query string:</h4>
-	    <pre>http://jpb.li/g/api?url=your_long_url&[title=your_customised_short_title]</pre>
-	    <h4>Recently shortened url's can be found at <a href="http://jpb.li/g/log">http://jpb.li/g/log</a></h4>
+	    <pre>http://localhost:8080/g/api?url=your_long_url&[title=your_customised_short_title]</pre>
+	    <h4>Recently shortened url's can be found at <a href="http://jpb.li/g/log">http://localhost:8080/g/log</a></h4>
           </head>
           <body onload="document.getElementById('url').focus()">
             <header><h4>Web Form:</h4></header>
@@ -199,7 +206,7 @@ class Admin:
         data = web.input()
         data.url = prepend_http_if_required(data.url)
 	if str(data.shortcut):
-		data.shortcut = "g/" + str(data.shortcut)
+		data.shortcut = str(data.shortcut)
         shortcut = str(data.shortcut) or random_shortcut(data.url)
         if str(data.title):
             siteTitle = data.title
@@ -210,13 +217,12 @@ class Admin:
             response = web.badrequest()
         elif storage.has_key(shortcut):
             myUrl = urlClass(data.url, siteTitle)
-            response = web.seeother(SERVICE_URL+ADMIN+'/done/'+shortcut)
+            response = web.seeother('/done/'+shortcut)
 	else :
             myUrl = urlClass(data.url, siteTitle)
             storage[shortcut] = myUrl
-            response = web.seeother(SERVICE_URL+ADMIN+'/done/'+shortcut)
-        responseurl = SERVICE_URL+ADMIN+shortcut
-        do_logging(myUrl, responseurl)
+            response = web.seeother('/done/'+shortcut)
+        do_logging(myUrl, "/" + REDIRECT_PREFIX + "/" + shortcut)
         storage.close()
         return response
 
@@ -290,7 +296,7 @@ class AdminDone:
           </body>
         </html>
         """)
-        return admin_done_template(SERVICE_URL + ADMIN + short_name)
+        return admin_done_template("/" + REDIRECT_PREFIX + "/" + short_name)
 
 def terminate(sig, frame):
     print 'Received Signal:', sig
@@ -316,6 +322,6 @@ if __name__ == "__main__":
 
 
 ##
-##TODO   failures 
+##TODO   failures
 ## http://www.gmail.com and www.butterfly.com
 ## save logger b/w restarts
